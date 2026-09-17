@@ -499,7 +499,7 @@
                 {{ gameState === 'won' ? t('youWin') : t('gameOver') }}
               </h2>
               <p class="text-sm sm:text-base text-slate-300 mb-6 font-semibold max-w-xs leading-relaxed">
-                {{ gameState === 'won' ? t('winDesc') : t('overDesc') }}
+                {{ gameState === 'won' ? t('winDesc', { target: winTarget }) : t('overDesc') }}
               </p>
               <div class="mt-2 flex flex-col sm:flex-row gap-3 w-full relative z-10">
                 <!-- Option for Victory: Continue -->
@@ -621,7 +621,16 @@
           }
         };
 
-        const t = (key) => translations[currentLang.value]?.[key] || translations['en']?.[key] || key;
+        const t = (key, params = {}) => {
+          let str = translations[currentLang.value]?.[key] || translations['en']?.[key] || key;
+          if (params && typeof params === 'object') {
+            Object.keys(params).forEach(p => {
+              const val = formatNum(params[p]);
+              str = str.replace(new RegExp(`\\{${p}\\}`, 'g'), val);
+            });
+          }
+          return str;
+        };
 
         function formatNum(val) {
           if (val === null || val === undefined) return '';
