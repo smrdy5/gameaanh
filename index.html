@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>16384 to win (Game Anh) - Landing Page</title>
+  
+  <!-- Local Tailwind CSS -->
+  <script src="./js/tailwindcss.js"></script>
+  <!-- Local Vue 3 -->
+  <script src="./js/vue.global.js"></script>
+  <!-- Local Canvas Confetti -->
+  <script src="./js/confetti.browser.min.js"></script>
+  <!-- Local Lucide / Untitled UI Icons -->
+  <script src="./js/lucide.min.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Doppio+One&family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&display=swap');
+
+    * {
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html {
+      font-size: 20px;
+    }
+
+    body, html {
+      font-family: 'Doppio One', 'Kantumruy Pro', 'Leelawadee UI', 'Khmer UI', sans-serif;
+    }
+
+    .lang-en, .lang-en * {
+      font-family: 'Doppio One', 'Kantumruy Pro', 'Leelawadee UI', 'Khmer UI', sans-serif;
+    }
+
+    .lang-km, .lang-km * {
+      font-family: 'Kantumruy Pro', 'Leelawadee UI', 'Khmer UI', 'Noto Sans Khmer', 'Khmer OS System', 'Khmer OS', sans-serif !important;
+      font-size: 1.08em;
+      line-height: 1.4;
+    }
+
+    .font-khmer {
+      font-family: 'Kantumruy Pro', 'Leelawadee UI', 'Khmer UI', 'Noto Sans Khmer', 'Khmer OS System', 'Khmer OS', sans-serif !important;
+    }
+
+    .font-latin {
+      font-family: 'Doppio One', sans-serif !important;
+    }
+
+    /* CSS Variables & Themes */
+    :root, html, body {
+      --bg-gradient: radial-gradient(circle at 50% 10%, #fffdf8 0%, #f7f0e6 60%, #eee2d0 100%);
+      --card-bg: rgba(255, 255, 255, 0.7);
+      --board-bg: #bbada0;
+      --board-border: #8f7a66;
+      --cell-bg: #cdc1b4;
+      --cell-border: rgba(143, 122, 102, 0.4);
+      --text-main: #4a423a;
+      --text-muted: #8f7a66;
+      --accent: #8f7a66;
+      --accent-hover: #7c6855;
+      --glass-border: rgba(143, 122, 102, 0.25);
+      --orb-1: rgba(245, 149, 99, 0.18);
+      --orb-2: rgba(237, 207, 114, 0.18);
+    }
+
+    .btn-accent {
+      background-color: var(--accent) !important;
+      color: #ffffff !important;
+    }
+    .btn-accent:hover {
+      background-color: var(--accent-hover) !important;
+    }
+
+    .theme-warm {
+      --bg-gradient: radial-gradient(circle at 50% 10%, #fffdf8 0%, #f7f0e6 60%, #eee2d0 100%);
+      --card-bg: rgba(255, 255, 255, 0.7);
+      --board-bg: #bbada0;
+      --board-border: #8f7a66;
+      --cell-bg: #cdc1b4;
+      --cell-border: rgba(143, 122, 102, 0.4);
+      --text-main: #4a423a;
+      --text-muted: #8f7a66;
+      --accent: #8f7a66;
+      --accent-hover: #7c6855;
+      --glass-border: rgba(143, 122, 102, 0.25);
+      --orb-1: rgba(245, 149, 99, 0.18);
+      --orb-2: rgba(237, 207, 114, 0.18);
+    }
+
+    .theme-midnight {
+      --bg-gradient: radial-gradient(circle at 50% 10%, #27272a 0%, #18181b 60%, #09090b 100%);
+      --card-bg: rgba(39, 39, 42, 0.8);
+      --board-bg: #18181b;
+      --board-border: #f43f5e;
+      --cell-bg: #27272a;
+      --cell-border: rgba(244, 63, 94, 0.35);
+      --text-main: #fafafa;
+      --text-muted: #a1a1aa;
+      --accent: #f43f5e;
+      --accent-hover: #e11d48;
+      --glass-border: rgba(244, 63, 94, 0.3);
+      --orb-1: rgba(244, 63, 94, 0.2);
+      --orb-2: rgba(99, 102, 241, 0.2);
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100vh;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      background-size: cover;
+      color: var(--text-main);
+      transition: background 0.4s ease, color 0.4s ease;
+      overflow-x: hidden;
+    }
+
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid var(--glass-border);
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+    }
+
+    @keyframes shimmer {
+      100% { transform: translateX(100%); }
+    }
+
+    .animate-shimmer {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .animate-shimmer::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0; bottom: 0; left: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0) 100%);
+      animation: shimmer 2.8s infinite;
+    }
+
+    @keyframes float-gentle {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .animate-float-gentle {
+      animation: float-gentle 3.5s ease-in-out infinite;
+    }
+
+    @keyframes orb-float-1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(35px, 25px) scale(1.1); }
+    }
+
+    @keyframes orb-float-2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-35px, -30px) scale(1.15); }
+    }
+
+    .animate-orb-1 {
+      animation: orb-float-1 12s ease-in-out infinite;
+    }
+
+    .animate-orb-2 {
+      animation: orb-float-2 15s ease-in-out infinite;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fade-in-up {
+      animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .delay-100 { animation-delay: 100ms; }
+    .delay-200 { animation-delay: 200ms; }
+    .delay-300 { animation-delay: 300ms; }
+    .delay-400 { animation-delay: 400ms; }
+    .delay-500 { animation-delay: 500ms; }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(244, 63, 94, 0.25); }
+      50% { box-shadow: 0 0 32px rgba(244, 63, 94, 0.6); }
+    }
+
+    .animate-pulse-glow {
+      animation: pulseGlow 2.5s infinite ease-in-out;
+    }
+
+    @keyframes slide-right-demo {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(54px); }
+    }
+
+    @keyframes merge-demo {
+      0%, 40% { transform: scale(1); }
+      50% { transform: scale(1.2) rotate(4deg); }
+      60%, 100% { transform: scale(1); }
+    }
+
+    .demo-slide {
+      animation: slide-right-demo 2.2s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .demo-merge {
+      animation: merge-demo 2.2s infinite cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes loadingProgress {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+
+    .animate-loading-bar {
+      animation: loadingProgress 1.8s ease-in-out forwards;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app" :class="['theme-' + currentTheme, 'lang-' + currentLang]" class="min-h-screen relative flex flex-col items-center justify-start py-6 px-3 sm:px-6 select-none transition-colors duration-300">
+    
+    <!-- Ambient Background Glow Orbs -->
+    <div class="bg-orb w-72 h-72 -top-10 -left-10 animate-orb-1" :style="{ backgroundColor: 'var(--orb-1)' }"></div>
+    <div class="bg-orb w-80 h-80 -bottom-10 -right-10 animate-orb-2" :style="{ backgroundColor: 'var(--orb-2)' }"></div>
+
+    <!-- MAIN LANDING CONTAINER -->
+    <div class="w-full max-w-[840px] z-10 flex flex-col gap-5 my-0 mx-auto py-3">
+      
+      <!-- LANDING PAGE HEADER NAVBAR -->
+      <header class="glass-card px-5 py-3.5 rounded-2xl flex items-center justify-between shadow-md animate-fade-in-up">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center font-black text-sm shadow-md transform hover:rotate-12 transition">
+            16K
+          </div>
+          <div>
+            <div class="text-base font-black tracking-tight leading-none">16384</div>
+            <div class="text-xs opacity-60 font-bold mt-0.5">{{ t('edition') }}</div>
+          </div>
+        </div>
+
+        <!-- Header Controls: Language, Theme & Audio Toggle -->
+        <div class="flex items-center gap-2">
+          <!-- Language Switcher Button -->
+          <button 
+            @click="currentLang = currentLang === 'en' ? 'km' : 'en'; saveSettings()" 
+            class="p-1 sm:px-2.5 sm:py-1.5 rounded-2xl bg-black/10 dark:bg-white/10 hover:bg-black/20 border border-black/10 dark:border-white/20 text-xs font-black flex items-center gap-1.5 transition-all duration-200 active:scale-95 shadow-xs group"
+            :title="'Switch to ' + (currentLang === 'en' ? 'Khmer' : 'English')">
+            <svg class="w-4 h-4 text-amber-500 group-hover:rotate-45 transition transform flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            <div class="flex items-center gap-0.5 bg-black/10 dark:bg-white/10 p-0.5 rounded-xl">
+              <span :class="['px-2 py-0.5 rounded-lg text-xs font-latin tracking-tight transition duration-200 whitespace-nowrap flex items-center justify-center', currentLang === 'en' ? 'btn-accent font-black shadow-xs' : 'opacity-70 hover:opacity-100']">EN</span>
+              <span :class="['px-2 py-0.5 rounded-lg text-xs font-khmer transition duration-200 whitespace-nowrap flex items-center justify-center leading-none', currentLang === 'km' ? 'btn-accent font-black shadow-xs' : 'opacity-70 hover:opacity-100']">ខ្មែរ</span>
+            </div>
+          </button>
+
+          <!-- Theme Switcher Button (High Visibility) -->
+          <button 
+            @click="currentTheme = currentTheme === 'warm' ? 'midnight' : 'warm'; saveSettings()" 
+            class="px-2.5 py-1.5 sm:px-3 rounded-2xl bg-black/10 dark:bg-white/10 hover:bg-black/20 border border-black/10 dark:border-white/20 text-xs font-black flex items-center gap-1.5 transition active:scale-95 shadow-xs group"
+            :title="'Switch Theme (' + (currentTheme === 'warm' ? 'Midnight' : 'Warm') + ')'">
+            <svg v-if="currentTheme === 'warm'" class="w-4 h-4 text-indigo-500 dark:text-indigo-400 group-hover:rotate-12 transition transform flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            <svg v-else class="w-4 h-4 text-amber-500 fill-amber-500/20 group-hover:rotate-45 transition transform flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            <span class="text-xs font-bold">{{ currentTheme === 'warm' ? t('themeWarm') : t('themeMidnight') }}</span>
+          </button>
+
+          <!-- Sound Toggle Button (High Visibility) -->
+          <button 
+            @click="toggleSound" 
+            class="p-2 sm:px-3 sm:py-1.5 rounded-2xl bg-black/10 dark:bg-white/10 hover:bg-black/20 border border-black/10 dark:border-white/20 text-xs font-black flex items-center gap-1.5 transition active:scale-95 shadow-xs group" 
+            :title="soundEnabled ? 'Mute Sound' : 'Enable Sound'">
+            <svg v-if="soundEnabled" class="w-4 h-4 text-amber-500 group-hover:scale-110 transition flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+            <svg v-else class="w-4 h-4 text-rose-500 opacity-70 group-hover:scale-110 transition flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Hero Title Banner -->
+      <div class="glass-card p-6 sm:p-9 rounded-3xl text-center flex flex-col items-center shadow-xl transform transition duration-300 hover:-translate-y-1 hover:shadow-2xl animate-fade-in-up delay-100">
+        <span class="text-xs font-black uppercase tracking-widest px-3.5 py-1 rounded-full bg-amber-400/20 text-amber-600 dark:text-amber-300 border border-amber-400/30 mb-3 animate-float-gentle flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.3 10a.7.7 0 0 1-.626-.37L4.3 3.3a.7.7 0 0 1 .626-.9h6.748a.7.7 0 0 1 .626.9l-3.374 6.33a.7.7 0 0 1-.626.37Z"/><rect width="8" height="8" x="13" y="13" rx="1"/><circle cx="7" cy="17" r="4"/></svg>
+          <span>{{ t('edition') }}</span>
+        </span>
+        <h1 class="text-6xl sm:text-8xl font-black tracking-tight bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 text-transparent bg-clip-text drop-shadow-sm mb-2 hover:scale-105 transition transform cursor-default">
+          16384
+        </h1>
+        <h2 class="text-xl sm:text-2xl font-bold opacity-80 mb-3">
+          <span class="font-black px-3.5 py-1 rounded-xl bg-black/10 dark:bg-white/10">(Game Anh)</span>
+        </h2>
+        <p class="text-base sm:text-lg opacity-85 max-w-md font-medium leading-relaxed mb-6">
+          {{ t('heroDesc') }}
+        </p>
+
+        <!-- Slide to Play Premium Interactive Slider -->
+        <div 
+          ref="slideTrack"
+          @click="handleTrackClick"
+          class="relative w-full max-w-md h-16 sm:h-18 rounded-full bg-amber-500/10 dark:bg-white/10 p-1.5 flex items-center shadow-lg overflow-hidden select-none cursor-pointer border-2 border-amber-500/30 dark:border-amber-400/30 backdrop-blur-xl group hover:border-amber-500/60 transition duration-300">
+          
+          <!-- Dynamic Progress Fill (Zero bleed at rest position) -->
+          <div 
+            class="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 rounded-full opacity-90 transition-all duration-75 shadow-md"
+            :style="{ width: sliderHandleX > 0 ? `calc(${sliderHandleX}px + 52px)` : '0px' }">
+          </div>
+
+          <!-- Sliding Text Prompt with Optical Center Shift -->
+          <div 
+            class="absolute inset-0 pl-10 pr-4 flex items-center justify-center pointer-events-none font-black text-xs sm:text-base tracking-[0.15em] uppercase transition-opacity duration-200 z-0"
+            :style="{ opacity: isCompleted ? 1 : Math.max(0.15, 1 - sliderProgress * 1.6) }">
+            <span class="flex items-center gap-2 drop-shadow-xs">
+              <span v-if="!isCompleted" class="text-amber-800 dark:text-amber-200 font-black animate-pulse">{{ t('slideToPlay') }}</span>
+              <span v-else class="text-white font-black tracking-widest drop-shadow-md">LOADING GAME...</span>
+              <svg v-if="!isCompleted" class="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 dark:text-amber-400 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m13 17 5-5-5-5"/><path d="m6 17 5-5-5-5"/></svg>
+            </span>
+          </div>
+
+          <!-- Draggable Glass/Gradient Knob / Handle -->
+          <div 
+            @mousedown.stop="startSlideDrag"
+            @touchstart.stop="startSlideDrag"
+            class="absolute left-1.5 top-1.5 bottom-1.5 aspect-square rounded-full bg-gradient-to-br from-amber-400 via-rose-500 to-purple-600 text-white shadow-xl shadow-rose-500/25 flex items-center justify-center cursor-grab active:cursor-grabbing transform transition-transform duration-75 hover:scale-105 active:scale-95 z-10 border-2 border-white/70"
+            :style="{ transform: `translateX(${sliderHandleX}px)` }">
+            <svg v-if="!isCompleted" class="w-5 h-5 sm:w-6 sm:h-6 stroke-[3] text-white transform group-hover:translate-x-0.5 transition drop-shadow-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m13 17 5-5-5-5"/><path d="m6 17 5-5-5-5"/></svg>
+            <svg v-else class="w-5 h-5 sm:w-6 sm:h-6 text-white animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3x3 Mini Interactive Preview Card -->
+      <div class="glass-card p-5 sm:p-6 rounded-3xl flex flex-col items-center gap-4 transition duration-300 hover:shadow-2xl animate-fade-in-up delay-200">
+        <div class="flex justify-between w-full items-center px-1 text-sm sm:text-base font-extrabold opacity-80">
+          <span class="flex items-center gap-2">
+            <span>{{ t('gridPreview') }}</span>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-600 dark:text-amber-300 font-black animate-pulse">{{ t('tapTiles') }}</span>
+          </span>
+          <span class="text-amber-500 font-black">{{ t('highestTile') }} {{ formatNum(16384) }}</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 w-full p-3 bg-black/10 dark:bg-white/10 rounded-2xl select-none">
+          <div @click="triggerTilePop($event, 2)" class="aspect-square rounded-2xl bg-[#eee4da] text-[#776e65] flex items-center justify-center font-black text-3xl sm:text-4xl shadow-sm cursor-pointer transform hover:scale-105 active:scale-125 transition duration-150">{{ formatNum(2) }}</div>
+          <div @click="triggerTilePop($event, 4)" class="aspect-square rounded-2xl bg-[#ede0c8] text-[#776e65] flex items-center justify-center font-black text-3xl sm:text-4xl shadow-sm cursor-pointer transform hover:scale-105 active:scale-125 transition duration-150">{{ formatNum(4) }}</div>
+          <div @click="triggerTilePop($event, 8)" class="aspect-square rounded-2xl bg-[#f2b179] text-white flex items-center justify-center font-black text-3xl sm:text-4xl shadow-sm cursor-pointer transform hover:scale-105 active:scale-125 transition duration-150">{{ formatNum(8) }}</div>
+          <div @click="triggerTilePop($event, 16)" class="aspect-square rounded-2xl bg-[#f59563] text-white flex items-center justify-center font-black text-3xl sm:text-4xl shadow-sm cursor-pointer transform hover:scale-105 active:scale-125 transition duration-150">{{ formatNum(16) }}</div>
+          <div @click="triggerTilePop($event, 32)" class="aspect-square rounded-2xl bg-[#f67c5f] text-white flex items-center justify-center font-black text-3xl sm:text-4xl shadow-sm cursor-pointer transform hover:scale-105 active:scale-125 transition duration-150">{{ formatNum(32) }}</div>
+          <div @click="triggerTilePop($event, 128)" class="aspect-square rounded-2xl bg-[#edcf72] text-white flex items-center justify-center font-black text-2xl sm:text-3xl shadow-sm cursor-pointer transform hover:scale-105 active:scale-125 transition duration-150">{{ formatNum(128) }}</div>
+          <div @click="triggerTilePop($event, 2048)" class="aspect-square rounded-2xl bg-[#edc22e] text-white flex items-center justify-center font-black text-xl sm:text-2xl shadow-md cursor-pointer transform hover:scale-105 active:scale-125 transition duration-150">{{ formatNum(2048) }}</div>
+          <div @click="triggerTilePop($event, 4096)" class="aspect-square rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center font-black text-xl sm:text-2xl shadow-md cursor-pointer transform hover:scale-105 active:scale-125 transition duration-150">{{ formatNum(4096) }}</div>
+          <div @click="triggerTilePop($event, 16384)" class="aspect-square rounded-2xl bg-gradient-to-br from-purple-700 via-indigo-800 to-amber-600 text-white flex items-center justify-center font-black text-lg sm:text-xl shadow-lg cursor-pointer transform hover:scale-110 active:scale-130 transition duration-150 relative overflow-hidden group">
+            <span class="z-10">{{ formatNum(16384) }}</span>
+            <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition duration-200"></div>
+          </div>
+        </div>
+        <div class="text-[10px] opacity-70 font-semibold text-center flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.287 1.288L3 12l5.8 1.9a2 2 0 0 1 1.288 1.287L12 21l1.9-5.8a2 2 0 0 1 1.287-1.288L21 12l-5.8-1.9a2 2 0 0 1-1.288-1.287Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+          <span>{{ t('previewTip') }}</span>
+        </div>
+
+        <!-- Feature Guide Action Buttons -->
+        <div class="grid grid-cols-2 gap-3 w-full animate-fade-in-up delay-300">
+          <!-- How to Play Button -->
+          <button 
+            @click="showTutorialModal = true" 
+            class="glass-card p-4 rounded-2xl flex flex-col items-center text-center gap-2 hover:bg-black/5 dark:hover:bg-white/5 transition transform hover:-translate-y-1 hover:shadow-xl active:scale-95 group">
+            <div class="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-500 flex items-center justify-center group-hover:scale-110 transition">
+              <svg class="w-5 h-5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
+            </div>
+            <div class="text-xs font-black">{{ t('howToPlay') }}</div>
+            <div class="text-[10px] opacity-70">{{ t('animatedTutorial') }}</div>
+          </button>
+
+          <!-- How to Win Strategy Button -->
+          <button 
+            @click="showStrategyModal = true" 
+            class="glass-card p-4 rounded-2xl flex flex-col items-center text-center gap-2 hover:bg-black/5 dark:hover:bg-white/5 transition transform hover:-translate-y-1 hover:shadow-xl active:scale-95 group">
+            <div class="w-10 h-10 rounded-xl bg-rose-400/20 text-rose-500 flex items-center justify-center group-hover:scale-110 transition">
+              <svg class="w-5 h-5 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+            </div>
+            <div class="text-xs font-black">{{ t('howToWin') }}</div>
+            <div class="text-[10px] opacity-70">{{ t('proStrategy') }}</div>
+          </button>
+        </div>
+
+        <!-- Best Score Banner -->
+        <div class="glass-card px-4 py-3.5 rounded-2xl flex items-center justify-between text-xs sm:text-sm font-bold w-full border border-amber-500/30 shadow-md hover:border-amber-500/50 transition animate-fade-in-up delay-400">
+          <span class="opacity-90 flex items-center gap-2">
+            <svg class="w-4 h-4 text-amber-500 animate-bounce" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+            <span>{{ t('personalBest') }}</span>
+            <span v-if="bestScore > 0" class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-300 font-extrabold ml-1">
+              {{ bestScoreGrid }}x{{ bestScoreGrid }}
+            </span>
+          </span>
+          <span class="text-lg font-black text-rose-500 dark:text-rose-400 tracking-wide transition-all duration-300">
+            {{ formatNum(displayBestScore) }} {{ t('pts') }}
+          </span>
+        </div>
+
+              <!-- DEVELOPER SECTION CARD (PHA Somarady - smrdy.xyz) -->
+        <div class="glass-card p-5 sm:p-6 rounded-3xl w-full border border-indigo-500/30 shadow-xl relative overflow-hidden group hover:border-indigo-500/60 transition duration-300 animate-fade-in-up delay-500 mt-1">
+          <div class="absolute -right-6 -bottom-6 w-36 h-36 bg-indigo-500/10 rounded-full blur-2xl group-hover:scale-125 transition duration-500 pointer-events-none"></div>
+          
+          <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left relative z-10">
+            <!-- Developer Avatar Icon -->
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-rose-500 p-0.5 shadow-lg flex-shrink-0 transform group-hover:rotate-6 transition duration-300">
+              <div class="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center text-white relative overflow-hidden">
+                <svg class="w-7 h-7 text-indigo-400 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="16 18 22 12 16 6"></polyline>
+                  <polyline points="8 6 2 12 8 18"></polyline>
+                  <line x1="14" y1="4" x2="10" y2="20"></line>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Developer Details -->
+            <div class="flex-1 space-y-2">
+              <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 px-2.5 py-0.5 rounded-full border border-indigo-500/25">
+                  {{ t('devBadge') }}
+                </span>
+                <span class="text-[10px] font-extrabold opacity-75 flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                  <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                  Phnom Penh, Cambodia
+                </span>
+              </div>
+
+              <div class="flex flex-col sm:flex-row items-center justify-between gap-1">
+                <h4 class="text-lg sm:text-xl font-black tracking-tight text-base-content flex items-center gap-1.5">
+                  <span>{{ t('devTitle') }}</span>
+                  <span class="text-amber-400 animate-spin" style="animation-duration: 6s;">✨</span>
+                </h4>
+              </div>
+
+              <p class="text-xs sm:text-sm opacity-80 leading-relaxed font-medium">
+                {{ t('devDesc') }}
+              </p>
+
+              <!-- Portfolio & Contact Links Bar -->
+              <div class="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs font-black">
+                <a 
+                  href="https://www.smrdy.xyz" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition flex items-center gap-1.5 shadow-md active:scale-95">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                  <span>www.smrdy.xyz</span>
+                  <svg class="w-3 h-3 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+                </a>
+
+                <a 
+                  href="https://t.me/smrdy" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  class="px-3 py-1.5 rounded-xl bg-sky-500/20 text-sky-600 dark:text-sky-300 hover:bg-sky-500/30 transition flex items-center gap-1.5 border border-sky-500/30 active:scale-95">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+                  <span>Telegram: @smrdy</span>
+                </a>
+
+                <a 
+                  href="mailto:phasomarady123@gmail.com" 
+                  class="px-3 py-1.5 rounded-xl bg-black/10 dark:bg-white/10 hover:bg-black/20 transition flex items-center gap-1.5 active:scale-95">
+                  <svg class="w-3.5 h-3.5 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/></svg>
+                  <span>Email</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2.5 text-center text-xs font-semibold shadow-md mt-1 w-full animate-fade-in-up delay-500">
+          <div class="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold opacity-85 flex-wrap justify-center">
+            <span class="px-2.5 py-1 rounded-lg bg-black/10 dark:bg-white/10 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+              <span>{{ t('trackerPill') }}</span>
+            </span>
+            <span class="px-2.5 py-1 rounded-lg bg-black/10 dark:bg-white/10 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 12h18"/><path d="M12 3v18"/></svg>
+              <span>{{ t('gridsPill') }}</span>
+            </span>
+            <span class="px-2.5 py-1 rounded-lg bg-black/10 dark:bg-white/10 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              <span>{{ t('audioPill') }}</span>
+            </span>
+          </div>
+          <div class="text-[11px] opacity-75 font-medium border-t border-black/5 dark:border-white/10 pt-2 w-full flex flex-col sm:flex-row items-center justify-between gap-1">
+            <span class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="6"/></svg>
+              <strong>16384 {{ t('subtitle') }} (Game Anh)</strong>
+            </span>
+            <span class="opacity-60 text-[10px]">{{ t('webEdition') }}</span>
+          </div>
+        </footer>
+
+      </div>
+
+    <!-- HOW TO PLAY TUTORIAL MODAL -->
+    <transition name="fade">
+      <div v-if="showTutorialModal" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="glass-card max-w-md w-full rounded-3xl p-6 sm:p-7 flex flex-col gap-4 shadow-2xl relative">
+          <button @click="showTutorialModal = false" class="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 absolute top-4 right-4 transition">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+          
+          <div class="flex items-center gap-2.5">
+            <svg class="w-6 h-6 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
+            <h3 class="text-2xl font-black tracking-tight">{{ t('howToPlay') }}</h3>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-black/5 dark:bg-white/5 flex items-center gap-3.5 border border-black/10 dark:border-white/10">
+            <div class="w-16 h-16 rounded-xl bg-black/10 dark:bg-white/10 relative overflow-hidden flex items-center justify-center flex-shrink-0">
+              <div class="w-9 h-9 rounded-lg bg-[#f2b179] text-white flex items-center justify-center font-black text-sm shadow demo-slide">{{ formatNum(8) }}</div>
+            </div>
+            <div class="flex-1 text-sm">
+              <strong class="text-base block mb-0.5">{{ t('step1Title') }}</strong>
+              {{ t('step1Desc') }}
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-black/5 dark:bg-white/5 flex items-center gap-3.5 border border-black/10 dark:border-white/10">
+            <div class="w-16 h-16 rounded-xl bg-black/10 dark:bg-white/10 flex items-center justify-center flex-shrink-0">
+              <div class="w-11 h-11 rounded-lg bg-[#f59563] text-white flex items-center justify-center font-black text-base shadow demo-merge">{{ formatNum(16) }}</div>
+            </div>
+            <div class="flex-1 text-sm">
+              <strong class="text-base block mb-0.5">{{ t('step2Title') }}</strong>
+              {{ t('step2Desc') }}
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-black/5 dark:bg-white/5 flex items-center gap-3.5 border border-black/10 dark:border-white/10">
+            <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-700 to-indigo-900 text-white flex items-center justify-center font-black text-xs sm:text-sm shadow-md flex-shrink-0">
+              {{ formatNum(16384) }}
+            </div>
+            <div class="flex-1 text-sm">
+              <strong class="text-base block mb-0.5">{{ t('step3Title') }}</strong>
+              {{ t('step3Desc') }}
+            </div>
+          </div>
+
+          <div class="mt-2">
+            <a href="game.html" class="btn-accent block text-center w-full py-3.5 px-5 rounded-2xl font-black text-base sm:text-lg shadow-md hover:shadow-xl transition transform active:scale-95">
+              {{ t('gotIt') }}
+            </a>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- HOW TO WIN STRATEGY GUIDE MODAL -->
+    <transition name="fade">
+      <div v-if="showStrategyModal" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="glass-card max-w-md w-full rounded-3xl p-6 sm:p-7 flex flex-col gap-4 shadow-2xl relative">
+          <button @click="showStrategyModal = false" class="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 absolute top-4 right-4 transition">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+          
+          <div class="flex items-center gap-2.5">
+            <svg class="w-6 h-6 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+            <h3 class="text-2xl font-black tracking-tight">{{ t('howToWin') }}</h3>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-black/5 dark:bg-white/5 flex gap-3.5 items-start border border-black/10 dark:border-white/10">
+            <div class="w-9 h-9 rounded-lg bg-amber-500 text-white flex items-center justify-center font-black text-base flex-shrink-0">1</div>
+            <div class="text-sm">
+              <strong class="text-base block mb-0.5">{{ t('tip1Title') }}</strong>
+              {{ t('tip1Desc') }}
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-black/5 dark:bg-white/5 flex gap-3.5 items-start border border-black/10 dark:border-white/10">
+            <div class="w-9 h-9 rounded-lg bg-purple-500 text-white flex items-center justify-center font-black text-base flex-shrink-0">2</div>
+            <div class="text-sm">
+              <strong class="text-base block mb-0.5">{{ t('tip2Title') }}</strong>
+              {{ t('tip2Desc') }}
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-black/5 dark:bg-white/5 flex gap-3.5 items-start border border-black/10 dark:border-white/10">
+            <div class="w-9 h-9 rounded-lg bg-rose-500 text-white flex items-center justify-center font-black text-base flex-shrink-0">3</div>
+            <div class="text-sm">
+              <strong class="text-base block mb-0.5">{{ t('tip3Title') }}</strong>
+              {{ t('tip3Desc') }}
+            </div>
+          </div>
+
+          <div class="mt-2">
+            <a href="game.html" class="btn-accent block text-center w-full py-3.5 px-5 rounded-2xl font-black text-base sm:text-lg shadow-md hover:shadow-xl transition transform active:scale-95">
+              {{ t('applyStrategy') }}
+            </a>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- PREPARING / LOADING MODAL OVERLAY -->
+    <transition name="fade">
+      <div v-if="showLoadingModal" class="fixed inset-0 bg-black/85 backdrop-blur-xl z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900/95 border-2 border-amber-500/50 text-white max-w-sm w-full rounded-3xl p-6 sm:p-7 flex flex-col items-center gap-5 text-center shadow-[0_0_50px_rgba(245,158,11,0.3)] ring-1 ring-white/10 relative overflow-hidden transform transition duration-300 scale-100">
+          
+          <!-- Ambient Glow Background inside Card -->
+          <div class="absolute -top-12 -left-12 w-40 h-40 bg-amber-500/20 rounded-full blur-2xl pointer-events-none"></div>
+          <div class="absolute -bottom-12 -right-12 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+          <!-- GIF Display Container with Dark Frame & Glass Border -->
+          <div class="relative w-full max-w-[260px] aspect-[4/3] rounded-2xl p-1 bg-gradient-to-r from-amber-500/40 via-rose-500/40 to-purple-500/40 border border-white/20 shadow-2xl overflow-hidden flex items-center justify-center group">
+            <img 
+              src="./images/loading.gif" 
+              onerror="this.onerror=null; this.src='https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcXZyMWYyYzlheGVhaTVkdml5bjczYjJ5NjVnY2Q5NXR2YjVxNng3aSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/z4lwT4QTkK3sYITR7Z/giphy.gif';" 
+              alt="Loading Game..." 
+              class="w-full h-full object-cover scale-[1.25] transform rounded-xl shadow-inner"
+            />
+          </div>
+
+          <!-- Loading Information & Status -->
+          <div class="w-full space-y-2 relative z-10">
+            <div class="text-xl sm:text-2xl font-black tracking-wider uppercase bg-gradient-to-r from-amber-400 via-rose-400 to-purple-400 text-transparent bg-clip-text drop-shadow-sm animate-pulse">
+              {{ t('preparingGame') }}
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-800/90 rounded-full h-2.5 overflow-hidden border border-white/10 my-2 shadow-inner">
+              <div class="bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 h-full rounded-full animate-loading-bar"></div>
+            </div>
+
+            <!-- Subtitle Badge -->
+            <div class="text-xs text-slate-400 font-bold flex items-center justify-center gap-2 pt-0.5">
+              <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span>16384 (Game Anh)</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </transition>
+
+  </div>
+
+  <script>
+    const { createApp, ref, watch, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        const showTutorialModal = ref(false);
+        const showStrategyModal = ref(false);
+        const showLoadingModal = ref(false);
+
+        let savedTheme = localStorage.getItem('2048_theme');
+        if (!['warm', 'midnight'].includes(savedTheme)) savedTheme = 'warm';
+        const currentTheme = ref(savedTheme);
+
+        let savedLang = localStorage.getItem('2048_lang');
+        if (!['en', 'km'].includes(savedLang)) savedLang = 'en';
+        const currentLang = ref(savedLang);
+
+        const soundEnabled = ref(localStorage.getItem('2048_sound') !== 'false');
+
+        function getOverallBestScoreInfo() {
+          const sizes = [4, 5, 6, 7, 8];
+          let max = 0;
+          let grid = 4;
+          sizes.forEach(sz => {
+            const val = parseInt(localStorage.getItem(`2048_bestScore_${sz}`) || '0', 10);
+            if (val > max) {
+              max = val;
+              grid = sz;
+            }
+          });
+          return { max, grid };
+        }
+
+        const bestInfo = getOverallBestScoreInfo();
+        const bestScore = ref(bestInfo.max);
+        const bestScoreGrid = ref(bestInfo.grid);
+        const displayBestScore = ref(0);
+
+        onMounted(() => {
+          if (bestScore.value > 0) {
+            const target = bestScore.value;
+            const duration = 1000;
+            const startTime = performance.now();
+            function animate(now) {
+              const elapsed = now - startTime;
+              const progress = Math.min(elapsed / duration, 1);
+              const easeOut = 1 - Math.pow(1 - progress, 3);
+              displayBestScore.value = Math.floor(target * easeOut);
+              if (progress < 1) {
+                requestAnimationFrame(animate);
+              } else {
+                displayBestScore.value = target;
+              }
+            }
+            requestAnimationFrame(animate);
+          } else {
+            displayBestScore.value = 0;
+          }
+        });
+
+        const slideTrack = ref(null);
+        const sliderHandleX = ref(0);
+        const sliderProgress = ref(0);
+        const isDragging = ref(false);
+        const isCompleted = ref(false);
+
+        let startX = 0;
+
+        function getTrackBounds() {
+          if (!slideTrack.value) return { maxDrag: 200, width: 300 };
+          const rect = slideTrack.value.getBoundingClientRect();
+          const knobWidth = 54;
+          const maxDrag = Math.max(1, rect.width - knobWidth - 12);
+          return { maxDrag, width: rect.width };
+        }
+
+        function startSlideDrag(e) {
+          if (isCompleted.value) return;
+          isDragging.value = true;
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          startX = clientX - sliderHandleX.value;
+          
+          window.addEventListener('mousemove', onSlideMove);
+          window.addEventListener('mouseup', onSlideEnd);
+          window.addEventListener('touchmove', onSlideMove, { passive: false });
+          window.addEventListener('touchend', onSlideEnd);
+        }
+
+        function onSlideMove(e) {
+          if (!isDragging.value || isCompleted.value) return;
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const { maxDrag } = getTrackBounds();
+          let x = clientX - startX;
+          if (x < 0) x = 0;
+          if (x > maxDrag) x = maxDrag;
+          sliderHandleX.value = x;
+          sliderProgress.value = x / maxDrag;
+
+          if (sliderProgress.value >= 0.88) {
+            completeSlide();
+          }
+        }
+
+        function onSlideEnd() {
+          if (!isDragging.value) return;
+          isDragging.value = false;
+          window.removeEventListener('mousemove', onSlideMove);
+          window.removeEventListener('mouseup', onSlideEnd);
+          window.removeEventListener('touchmove', onSlideMove);
+          window.removeEventListener('touchend', onSlideEnd);
+
+          if (sliderProgress.value < 0.88 && !isCompleted.value) {
+            let duration = 200;
+            let startVal = sliderHandleX.value;
+            let startTime = performance.now();
+            function animateSnap(now) {
+              let elapsed = now - startTime;
+              let p = Math.min(elapsed / duration, 1);
+              sliderHandleX.value = startVal * (1 - p);
+              const { maxDrag } = getTrackBounds();
+              sliderProgress.value = sliderHandleX.value / maxDrag;
+              if (p < 1 && !isDragging.value) {
+                requestAnimationFrame(animateSnap);
+              } else if (!isDragging.value) {
+                sliderHandleX.value = 0;
+                sliderProgress.value = 0;
+              }
+            }
+            requestAnimationFrame(animateSnap);
+          }
+        }
+
+        function handleTrackClick() {
+          if (isCompleted.value) return;
+          completeSlide();
+        }
+
+        function completeSlide() {
+          if (isCompleted.value) return;
+          isCompleted.value = true;
+          isDragging.value = false;
+          const { maxDrag } = getTrackBounds();
+          sliderHandleX.value = maxDrag;
+          sliderProgress.value = 1;
+          showLoadingModal.value = true;
+
+          playSound('merge');
+          if (typeof confetti === 'function') {
+            confetti({
+              particleCount: 80,
+              spread: 90,
+              origin: { y: 0.6 }
+            });
+          }
+
+          setTimeout(() => {
+            window.location.href = 'game.html';
+          }, 1800);
+        }
+
+        const translations = {
+          en: {
+            title: '16384',
+            subtitle: 'to win',
+            edition: 'Puzzle Edition',
+            heroDesc: 'Join matching numbers, slide tiles across expanded 4x4 to 8x8 grids, and reach the legendary 16384 tile!',
+            playNow: 'PLAY GAME NOW',
+            slideToPlay: 'SLIDE TO PLAY GAME',
+            preparingGame: 'PREPARING YOUR GAME...',
+            gridPreview: 'Grid Preview',
+            highestTile: 'Highest Tile:',
+            tapTiles: 'Tap Tiles!',
+            previewTip: 'Tap any tile for sound FX & particle effects!',
+            howToPlay: 'How to Play',
+            animatedTutorial: 'Animated Tutorial',
+            howToWin: 'How to Win',
+            proStrategy: 'Pro Strategy Guide',
+            personalBest: 'Personal Best Record:',
+            pts: 'pts',
+            gotIt: 'GOT IT - START PLAYING!',
+            applyStrategy: 'APPLY STRATEGY & PLAY!',
+            step1Title: '1. Slide Tiles',
+            step1Desc: 'Use Arrow keys, WASD, or Touch Swipe to move all tiles simultaneously in one direction.',
+            step2Title: '2. Merge Matching Numbers',
+            step2Desc: 'When two tiles with the exact same number touch, they combine into one! (e.g. 8+8=16).',
+            step3Title: '3. Reach 16384',
+            step3Desc: 'Keep merging tiles until you create the 16384 tile to win the game!',
+            tip1Title: 'Corner Anchor Strategy',
+            tip1Desc: 'Lock your highest tile (e.g. 4096 or 8192) in a single corner (bottom-right). Never slide away from that corner unless forced!',
+            tip2Title: 'Monotonic Order',
+            tip2Desc: 'Keep tiles sorted in descending numerical order along the bottom row: 16384 > 8192 > 4096 > 2048.',
+            tip3Title: 'Use 6x6, 7x7, or 8x8 Grids',
+            tip3Desc: 'Larger grid dimensions give you extra space to maneuver and set up cascading multi-tile merges.',
+            trackerPill: 'High Score Tracker',
+            gridsPill: '4x4 to 8x8 Grids',
+            audioPill: 'Web Audio FX',
+            webEdition: 'Web Edition',
+            themeWarm: 'Warm',
+            themeMidnight: 'Midnight',
+            devBadge: 'DEVELOPER & CREATOR',
+            devTitle: 'PHA Somarady (smrdy)',
+            devDesc: 'CS Student at Western University (Phnom Penh, Cambodia).'
+          },
+          km: {
+            title: '16384',
+            subtitle: 'ដើម្បីឈ្នះ',
+            edition: 'កំណែផ្ដុំរូប',
+            heroDesc: 'ផ្គូផ្គងលេខដែលដូចគ្នា រំកិលក្រឡាតាមទំហំ 4x4 ដល់ 8x8 និងបង្កើតក្រឡា 16384 ដើម្បីឈ្នះ!',
+            playNow: 'លេងហ្គេមឥឡូវនេះ',
+            slideToPlay: 'អូសដើម្បីលេងហ្គេម',
+            preparingGame: 'កំពុងរៀបចំហ្គេមរបស់អ្នក...',
+            gridPreview: 'មើលមុនក្រឡា',
+            highestTile: 'ក្រឡាខ្ពស់បំផុត:',
+            tapTiles: 'ចុចលើក្រឡា!',
+            previewTip: 'ចុចលើក្រឡាដើម្បីស្ដាប់សំឡេង និងមើលបែបផែន!',
+            howToPlay: 'របៀបលេង',
+            animatedTutorial: 'មេរៀនមានចលនា',
+            howToWin: 'របៀបឈ្នះ',
+            proStrategy: 'ការណែនាំយុទ្ធសាស្ត្រ',
+            personalBest: 'កំណត់ត្រាល្អបំផុត:',
+            pts: 'ពិន្ទុ',
+            gotIt: 'យល់ហើយ - ចាប់ផ្តើមលេង!',
+            applyStrategy: 'ប្រើប្រាស់យុទ្ធសាស្ត្រ & លេង!',
+            step1Title: '១. រំកិលក្រឡា',
+            step1Desc: 'ប្រើប្រាស់គ្រាប់ចុចព្រួញ WASD ឬរំកិលលើអេក្រង់ដើម្បីផ្លាស់ទីក្រឡាទាំងអស់។',
+            step2Title: '២. បូកបញ្ចូលលេខដូចគ្នា',
+            step2Desc: 'នៅពេលក្រឡាពីរមានលេខដូចគ្នាប៉ះគ្នា វានឹងរួមបញ្ចូលគ្នាជាលេខតែមួយ! (ឧ. 8+8=16)',
+            step3Title: '៣. បង្កើតក្រឡា 16384',
+            step3Desc: 'បន្តបូកបញ្ចូលក្រឡារហូតដល់បង្កើតបានក្រឡា 16384 ដើម្បីឈ្នះ!',
+            tip1Title: 'យុទ្ធសាស្ត្រចាក់សោតាមកែង',
+            tip1Desc: 'រក្សាក្រឡាធំបំផុតរបស់អ្នកនៅកែងមួយ (ស្តាំខាងក្រោម)។ កុំរំកិលចាកចេញពីកែងនោះលុះត្រាតែបង្ខំ!',
+            tip2Title: 'រៀបចំតាមលំដាប់ថយចុះ',
+            tip2Desc: 'រក្សាក្រឡាតាមលំដាប់ថយចុះតាមជួរខាងក្រោម៖ 16384 > 8192 > 4096 > 2048។',
+            tip3Title: 'ប្រើប្រាស់ក្រឡា 6x6, 7x7 ឬ 8x8',
+            tip3Desc: 'ទំហំក្រឡាធំជាងមុនផ្តល់លំហបន្ថែមសម្រាប់អ្នករៀបចំយុទ្ធសាស្ត្រ។',
+            trackerPill: 'រក្សាកំណត់ត្រា',
+            gridsPill: 'ក្រឡា 4x4 ដល់ 8x8',
+            audioPill: 'សំឡេងបែបផែន',
+            webEdition: 'កំណែលើបណ្តាញ',
+            themeWarm: 'កក់ក្តៅ',
+            themeMidnight: 'អធ្រាត្រ',
+            devBadge: 'អ្នកអភិវឌ្ឍន៍ & អ្នកបង្កើត',
+            devTitle: 'ផា សុម៉ារ៉ាឌី (smrdy)',
+            devDesc: 'និស្សិតជំនាញវិទ្យាសាស្ត្រកុំព្យូទ័រ សាកលវិទ្យាល័យ វេស្ទើន។ អ្នកបង្កើតហ្គេម 16384 (Game Anh)',
+          }
+        };
+
+        const t = (key) => translations[currentLang.value]?.[key] || translations['en']?.[key] || key;
+
+        function formatNum(val) {
+          if (val === null || val === undefined) return '';
+          const str = String(val);
+          if (currentLang.value === 'km') {
+            const khmerDigits = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+            return str.replace(/\d/g, d => khmerDigits[parseInt(d, 10)]);
+          }
+          return str;
+        }
+
+        function playSound(type) {
+          if (!soundEnabled.value) return;
+          try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            const now = ctx.currentTime;
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(320, now);
+            osc.frequency.exponentialRampToValueAtTime(640, now + 0.12);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+            osc.start(now);
+            osc.stop(now + 0.12);
+          } catch (e) {}
+        }
+
+        function triggerTilePop(event, value) {
+          playSound('merge');
+          if (typeof confetti === 'function' && event && event.currentTarget) {
+            const rect = event.currentTarget.getBoundingClientRect();
+            const x = (rect.left + rect.width / 2) / window.innerWidth;
+            const y = (rect.top + rect.height / 2) / window.innerHeight;
+            
+            confetti({
+              particleCount: value >= 16384 ? 90 : (value >= 2048 ? 40 : 15),
+              spread: value >= 16384 ? 100 : (value >= 2048 ? 60 : 35),
+              startVelocity: value >= 16384 ? 35 : 20,
+              origin: { x, y }
+            });
+          }
+        }
+
+        function toggleSound() {
+          soundEnabled.value = !soundEnabled.value;
+          saveSettings();
+        }
+
+        function saveSettings() {
+          localStorage.setItem('2048_theme', currentTheme.value);
+          localStorage.setItem('2048_sound', soundEnabled.value);
+          localStorage.setItem('2048_lang', currentLang.value);
+        }
+
+        watch([currentTheme, currentLang], ([newTheme, newLang]) => {
+          document.body.className = `theme-${newTheme} lang-${newLang}`;
+          document.documentElement.className = `theme-${newTheme} lang-${newLang}`;
+        }, { immediate: true });
+
+        return {
+          showTutorialModal,
+          showStrategyModal,
+          showLoadingModal,
+          currentTheme,
+          currentLang,
+          t,
+          formatNum,
+          soundEnabled,
+          bestScore,
+          bestScoreGrid,
+          displayBestScore,
+          toggleSound,
+          saveSettings,
+          triggerTilePop,
+          slideTrack,
+          sliderHandleX,
+          sliderProgress,
+          isDragging,
+          isCompleted,
+          startSlideDrag,
+          handleTrackClick
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

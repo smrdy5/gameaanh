@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>16384 Game (Game Anh)</title>
+  
+  <!-- Local Tailwind CSS -->
+  <script src="./js/tailwindcss.js"></script>
+  <!-- Local Vue 3 -->
+  <script src="./js/vue.global.js"></script>
+  <!-- Local Canvas Confetti -->
+  <script src="./js/confetti.browser.min.js"></script>
+  <!-- Local Lucide / Untitled UI Icons -->
+  <script src="./js/lucide.min.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Doppio+One&family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&display=swap');
+
+    * {
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html {
+      font-size: 20px;
+    }
+
+    body, html {
+      font-family: 'Doppio One', 'Kantumruy Pro', 'Leelawadee UI', 'Khmer UI', sans-serif;
+    }
+
+    .lang-en, .lang-en * {
+      font-family: 'Doppio One', 'Kantumruy Pro', 'Leelawadee UI', 'Khmer UI', sans-serif;
+    }
+
+    .lang-km, .lang-km * {
+      font-family: 'Kantumruy Pro', 'Leelawadee UI', 'Khmer UI', 'Noto Sans Khmer', 'Khmer OS System', 'Khmer OS', sans-serif !important;
+      font-size: 1.08em;
+      line-height: 1.4;
+    }
+
+    .font-khmer {
+      font-family: 'Kantumruy Pro', 'Leelawadee UI', 'Khmer UI', 'Noto Sans Khmer', 'Khmer OS System', 'Khmer OS', sans-serif !important;
+    }
+
+    .font-latin {
+      font-family: 'Doppio One', sans-serif !important;
+    }
+
+    /* CSS Variables & Default Fallback */
+    :root, html, body {
+      --bg-gradient: radial-gradient(circle at 50% 10%, #fffdf8 0%, #f7f0e6 60%, #eee2d0 100%);
+      --card-bg: rgba(255, 255, 255, 0.7);
+      --board-bg: #bbada0;
+      --board-border: #8f7a66;
+      --cell-bg: #cdc1b4;
+      --cell-border: rgba(143, 122, 102, 0.4);
+      --text-main: #4a423a;
+      --text-muted: #8f7a66;
+      --accent: #8f7a66;
+      --accent-hover: #7c6855;
+      --glass-border: rgba(143, 122, 102, 0.25);
+      --orb-1: rgba(245, 149, 99, 0.18);
+      --orb-2: rgba(237, 207, 114, 0.18);
+    }
+
+    .btn-accent {
+      background-color: var(--accent) !important;
+      color: #ffffff !important;
+    }
+    .btn-accent:hover {
+      background-color: var(--accent-hover) !important;
+    }
+
+    /* Dropdown Options Contrast */
+    select option {
+      background-color: #ffffff;
+      color: #1e293b;
+    }
+    .theme-midnight select option {
+      background-color: #18181b !important;
+      color: #fafafa !important;
+    }
+    .theme-warm select option {
+      background-color: #ffffff !important;
+      color: #4a423a !important;
+    }
+
+    .theme-warm {
+      --bg-gradient: radial-gradient(circle at 50% 10%, #fffdf8 0%, #f7f0e6 60%, #eee2d0 100%);
+      --card-bg: rgba(255, 255, 255, 0.7);
+      --board-bg: #bbada0;
+      --board-border: #8f7a66;
+      --cell-bg: #cdc1b4;
+      --cell-border: rgba(143, 122, 102, 0.4);
+      --text-main: #4a423a;
+      --text-muted: #8f7a66;
+      --accent: #8f7a66;
+      --accent-hover: #7c6855;
+      --glass-border: rgba(143, 122, 102, 0.25);
+      --orb-1: rgba(245, 149, 99, 0.18);
+      --orb-2: rgba(237, 207, 114, 0.18);
+    }
+
+    .theme-midnight {
+      --bg-gradient: radial-gradient(circle at 50% 10%, #27272a 0%, #18181b 60%, #09090b 100%);
+      --card-bg: rgba(39, 39, 42, 0.8);
+      --board-bg: #18181b;
+      --board-border: #f43f5e;
+      --cell-bg: #27272a;
+      --cell-border: rgba(244, 63, 94, 0.35);
+      --text-main: #fafafa;
+      --text-muted: #a1a1aa;
+      --accent: #f43f5e;
+      --accent-hover: #e11d48;
+      --glass-border: rgba(244, 63, 94, 0.3);
+      --orb-1: rgba(244, 63, 94, 0.2);
+      --orb-2: rgba(99, 102, 241, 0.2);
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100vh;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      background-size: cover;
+      color: var(--text-main);
+      transition: background 0.4s ease, color 0.4s ease;
+      overflow-x: hidden;
+    }
+
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid var(--glass-border);
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+    }
+
+    .tile-3d {
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .tile-appear {
+      animation: appear 220ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    .tile-merge {
+      animation: pop 240ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes appear {
+      0% { opacity: 0; transform: scale(0.3); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.18); filter: brightness(1.25); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes float-up {
+      0% { opacity: 1; transform: translateY(0) scale(0.85); }
+      50% { opacity: 1; transform: translateY(-28px) scale(1.15); }
+      100% { opacity: 0; transform: translateY(-46px) scale(1); }
+    }
+
+    .floating-score {
+      animation: float-up 800ms cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+    }
+
+    .board-container {
+      background-color: var(--board-bg);
+      border: 3.5px solid var(--board-border);
+      border-radius: 20px;
+      position: relative;
+      touch-action: none;
+      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.22);
+    }
+
+    .grid-board-layer {
+      display: grid;
+      width: 100%;
+      height: 100%;
+    }
+
+    .grid-cell-bg {
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.12);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app" :class="['theme-' + currentTheme, 'lang-' + currentLang]" class="min-h-screen relative flex flex-col items-center justify-start py-6 px-3 sm:px-6 select-none transition-colors duration-300">
+    
+    <!-- Ambient Background Orbs -->
+    <div class="bg-orb w-72 h-72 -top-10 -left-10" :style="{ backgroundColor: 'var(--orb-1)' }"></div>
+    <div class="bg-orb w-80 h-80 -bottom-10 -right-10" :style="{ backgroundColor: 'var(--orb-2)' }"></div>
+
+    <!-- MAIN GAME CONTAINER -->
+    <div class="w-full max-w-[640px] z-10 flex flex-col gap-4 my-0 mx-auto">
+      
+      <!-- Top Navigation & Title Bar -->
+      <header class="flex justify-between items-center w-full gap-2">
+        <div class="flex flex-col gap-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <!-- Home Button -> Links to index.html -->
+            <a href="index.html" class="p-2 rounded-xl bg-black/10 dark:bg-white/10 hover:bg-black/20 transition flex-shrink-0" title="Return to Landing Page">
+              <svg class="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            </a>
+            <h1 class="text-3xl sm:text-5xl font-black tracking-tight bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 text-transparent bg-clip-text drop-shadow-sm">
+              16384
+            </h1>
+            <span class="text-xs sm:text-sm font-extrabold opacity-75 whitespace-nowrap">(Game Anh)</span>
+            <span class="px-2 py-0.5 sm:px-2.5 sm:py-1 text-[11px] sm:text-xs font-extrabold uppercase tracking-wider rounded-lg text-white shadow-md btn-accent whitespace-nowrap">
+              {{ formatNum(boardSize) }}x{{ formatNum(boardSize) }}
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm font-semibold opacity-75 mt-0.5 flex flex-wrap items-center gap-1">
+            <span>{{ t('combineHelp') }}</span>
+            <span class="font-extrabold px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-600 dark:text-amber-300">{{ formatNum(winTarget) }}</span>
+            <span>{{ t('toWin') }}</span>
+          </p>
+        </div>
+
+        <!-- Scores Display -->
+        <div class="flex gap-2.5 flex-shrink-0">
+          <div class="glass-card px-3.5 py-2 sm:px-5 sm:py-3 rounded-2xl text-center min-w-[76px] sm:min-w-[84px] relative shadow-md flex flex-col justify-center">
+            <div class="text-[11px] sm:text-sm font-black uppercase tracking-wider opacity-60">{{ t('score') }}</div>
+            <div class="text-lg sm:text-3xl font-black leading-tight tracking-tight">{{ formatNum(score) }}</div>
+            <!-- Floating Score Addition -->
+            <div v-for="gain in scoreGains" :key="gain.id" class="floating-score absolute left-0 right-0 top-0 text-center font-black text-base sm:text-lg pointer-events-none drop-shadow" :style="{ color: 'var(--accent)' }">
+              +{{ formatNum(gain.value) }}
+            </div>
+          </div>
+
+          <div class="glass-card px-3.5 py-2 sm:px-5 sm:py-3 rounded-2xl text-center min-w-[76px] sm:min-w-[84px] shadow-md flex flex-col justify-center border transition border-amber-500/20" :class="{ 'border-amber-400 bg-amber-500/10': isNewBest }">
+            <div class="text-[11px] sm:text-sm font-black uppercase tracking-wider opacity-60 flex items-center justify-center gap-1">
+              <svg class="w-3.5 h-3.5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+              <span>{{ t('best') }}</span>
+            </div>
+            <div class="text-lg sm:text-3xl font-black leading-tight tracking-tight text-rose-500 dark:text-rose-400 transition-transform duration-300 transform" :class="{ 'scale-110 text-amber-400 animate-pulse': isNewBest }">{{ formatNum(bestScore) }}</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Action Bar & Controls -->
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <!-- Stats Pills -->
+        <div class="flex items-center gap-2 text-xs sm:text-sm font-semibold opacity-85">
+          <div class="glass-card px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm">
+            <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span>{{ t('moves') }} <strong class="font-black">{{ formatNum(moves) }}</strong></span>
+          </div>
+          <div v-if="comboMultiplier > 1" class="glass-card px-3 py-1.5 rounded-xl font-black text-amber-500 animate-pulse flex items-center gap-1 border-amber-400/40 shadow-sm">
+            <span><i class="fa-solid fa-fire text-amber-500 mr-1 animate-bounce"></i>{{ formatNum(comboMultiplier) }}x {{ t('combo') }}</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2 ml-auto">
+          <!-- Undo Button -->
+          <button 
+            @click="undo" 
+            :disabled="!canUndo"
+            class="px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl shadow-md transition transform active:scale-95 disabled:opacity-40 disabled:scale-100 disabled:cursor-not-allowed flex items-center gap-1.5 btn-accent">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+            <span>{{ t('undo') }}</span>
+          </button>
+
+          <!-- New Game Button -->
+          <button 
+            @click="startNewGame" 
+            class="px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition transform active:scale-95 flex items-center gap-1.5 btn-accent">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span>{{ t('newGame') }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Settings Toolbar -->
+      <div class="glass-card p-3.5 sm:p-4 rounded-3xl flex flex-col gap-3 text-xs sm:text-sm font-semibold shadow-xl border border-black/10 dark:border-white/15">
+        <!-- Row 1: Grid Size Selector -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-black/10 dark:bg-white/10 p-2 sm:p-2.5 rounded-2xl border border-black/10 dark:border-white/15 shadow-inner">
+          <span class="opacity-80 font-black text-xs sm:text-sm px-1.5 whitespace-nowrap flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 12h18"/><path d="M12 3v18"/></svg>
+            <span>{{ t('gridLabel') }}</span>
+          </span>
+          <div class="flex w-full sm:w-auto flex-1 justify-end gap-1.5">
+            <button 
+              v-for="size in [4, 5, 6, 7, 8]" 
+              :key="size" 
+              @click="changeBoardSize(size)"
+              :class="['px-2.5 py-1.5 rounded-xl text-xs sm:text-sm flex-1 sm:flex-none font-black transition-all duration-200', boardSize === size ? 'btn-accent text-white shadow-md scale-105 z-10' : 'bg-black/10 dark:bg-white/10 opacity-70 hover:opacity-100']">
+              {{ formatNum(size) }}x{{ formatNum(size) }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Row 2: Controls Toolbar (Spacious Grid / Flex with Guaranteed Buffer) -->
+        <div class="flex flex-wrap items-center justify-between gap-2.5 pt-0.5">
+          
+          <!-- Target Win Selector -->
+          <div class="relative flex-1 min-w-[155px] sm:min-w-[160px]">
+            <button 
+              @click.stop="toggleDropdown('target')" 
+              class="w-full flex items-center justify-between gap-2 bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 border border-black/10 dark:border-white/15 rounded-xl px-3 py-2 text-xs font-black transition active:scale-95 shadow-xs">
+              <span class="opacity-70 font-bold whitespace-nowrap">{{ t('targetLabel') }}</span>
+              <span class="whitespace-nowrap font-black text-amber-500">{{ formatNum(winTarget) }}</span>
+              <svg class="w-3.5 h-3.5 flex-shrink-0 opacity-70 transition-transform duration-200" :class="{ 'rotate-180': activeDropdown === 'target' }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+
+            <transition name="fade">
+              <div v-if="activeDropdown === 'target'" class="absolute bottom-full mb-2 left-0 right-0 z-50 glass-card rounded-2xl p-1.5 shadow-2xl flex flex-col gap-1 backdrop-blur-xl animate-fade-in min-w-[150px] border border-black/10 dark:border-white/20">
+                <button 
+                  v-for="targetVal in [2048, 4096, 8192, 16384]"
+                  :key="targetVal"
+                  @click.stop="winTarget = targetVal; saveSettings(); activeDropdown = null" 
+                  :class="['w-full px-3 py-1.5 rounded-xl text-xs font-bold text-left flex items-center justify-between transition', winTarget === targetVal ? 'btn-accent text-white font-black' : 'hover:bg-black/5 dark:hover:bg-white/10']">
+                  <span class="flex items-center gap-1.5 whitespace-nowrap">
+                    <svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                    <span class="whitespace-nowrap font-black">{{ formatNum(targetVal) }}</span>
+                  </span>
+                  <span v-if="winTarget === targetVal"><svg class="w-3.5 h-3.5 text-current flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+                </button>
+              </div>
+            </transition>
+          </div>
+
+          <!-- Spawn Selector -->
+          <div class="relative flex-1 min-w-[155px] sm:min-w-[160px]">
+            <button 
+              @click.stop="toggleDropdown('spawn')" 
+              class="w-full flex items-center justify-between gap-2 bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 border border-black/10 dark:border-white/15 rounded-xl px-3 py-2 text-xs font-black transition active:scale-95 shadow-xs">
+              <span class="opacity-70 font-bold whitespace-nowrap">{{ t('spawnLabel') }}</span>
+              <span class="whitespace-nowrap font-extrabold text-purple-600 dark:text-purple-300">{{ spawnRate === 1 ? t('tile1') : t('tile2') }}</span>
+              <svg class="w-3.5 h-3.5 flex-shrink-0 opacity-70 transition-transform duration-200" :class="{ 'rotate-180': activeDropdown === 'spawn' }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+
+            <transition name="fade">
+              <div v-if="activeDropdown === 'spawn'" class="absolute bottom-full mb-2 left-0 right-0 z-50 glass-card rounded-2xl p-1.5 shadow-2xl flex flex-col gap-1 backdrop-blur-xl animate-fade-in min-w-[150px] border border-black/10 dark:border-white/20">
+                <button 
+                  @click.stop="spawnRate = 1; saveSettings(); activeDropdown = null" 
+                  :class="['w-full px-3 py-1.5 rounded-xl text-xs font-bold text-left flex items-center justify-between transition', spawnRate === 1 ? 'btn-accent text-white font-black' : 'hover:bg-black/5 dark:hover:bg-white/10']">
+                  <span class="flex items-center gap-1.5 whitespace-nowrap"><svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.57 3.91a2 2 0 0 0 1.66 0l8.57-3.9a1 1 0 0 0 0-1.83Z"/><path d="M22 17.65V12a1 1 0 0 0-.58-.91l-8.58-3.9a2 2 0 0 0-1.68 0L2.58 11.1A1 1 0 0 0 2 12v5.65a1 1 0 0 0 .58.91l8.58 3.9a2 2 0 0 0 1.68 0l8.58-3.9a1 1 0 0 0 .58-.91Z"/></svg><span class="whitespace-nowrap">{{ t('tile1') }}</span></span>
+                  <span v-if="spawnRate === 1"><svg class="w-3.5 h-3.5 text-current flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+                </button>
+                <button 
+                  @click.stop="spawnRate = 2; saveSettings(); activeDropdown = null" 
+                  :class="['w-full px-3 py-1.5 rounded-xl text-xs font-bold text-left flex items-center justify-between transition', spawnRate === 2 ? 'btn-accent text-white font-black' : 'hover:bg-black/5 dark:hover:bg-white/10']">
+                  <span class="flex items-center gap-1.5 whitespace-nowrap"><svg class="w-3.5 h-3.5 text-purple-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.57 3.91a2 2 0 0 0 1.66 0l8.57-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 12.5-8.58 3.91a2 2 0 0 1-1.68 0L3.16 12.5"/><path d="m22 17.5-8.58 3.91a2 2 0 0 1-1.68 0L3.16 17.5"/></svg><span class="whitespace-nowrap">{{ t('tile2') }}</span></span>
+                  <span v-if="spawnRate === 2"><svg class="w-3.5 h-3.5 text-current flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+                </button>
+              </div>
+            </transition>
+          </div>
+
+          <!-- Theme Picker -->
+          <div class="relative flex-1 min-w-[155px] sm:min-w-[160px]">
+            <button 
+              @click.stop="toggleDropdown('theme')" 
+              class="w-full flex items-center justify-between gap-2 bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 border border-black/10 dark:border-white/15 rounded-xl px-3 py-2 text-xs font-black transition active:scale-95 shadow-xs">
+              <span class="opacity-70 font-bold whitespace-nowrap">{{ t('themeLabel') }}</span>
+              <span class="capitalize whitespace-nowrap font-extrabold text-indigo-600 dark:text-indigo-300">{{ currentTheme === 'warm' ? t('themeWarm') : t('themeMidnight') }}</span>
+              <svg class="w-3.5 h-3.5 flex-shrink-0 opacity-70 transition-transform duration-200" :class="{ 'rotate-180': activeDropdown === 'theme' }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+
+            <transition name="fade">
+              <div v-if="activeDropdown === 'theme'" class="absolute bottom-full mb-2 left-0 right-0 z-50 glass-card rounded-2xl p-1.5 shadow-2xl flex flex-col gap-1 backdrop-blur-xl animate-fade-in min-w-[150px] border border-black/10 dark:border-white/20">
+                <button 
+                  @click.stop="currentTheme = 'warm'; saveSettings(); activeDropdown = null" 
+                  :class="['w-full px-3 py-1.5 rounded-xl text-xs font-bold text-left flex items-center justify-between transition', currentTheme === 'warm' ? 'btn-accent text-white font-black' : 'hover:bg-black/5 dark:hover:bg-white/10']">
+                  <span class="flex items-center gap-1.5 whitespace-nowrap"><svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg><span class="whitespace-nowrap">{{ t('themeWarm') }}</span></span>
+                  <span v-if="currentTheme === 'warm'"><svg class="w-3.5 h-3.5 text-current flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+                </button>
+                <button 
+                  @click.stop="currentTheme = 'midnight'; saveSettings(); activeDropdown = null" 
+                  :class="['w-full px-3 py-1.5 rounded-xl text-xs font-bold text-left flex items-center justify-between transition', currentTheme === 'midnight' ? 'btn-accent text-white font-black' : 'hover:bg-black/5 dark:hover:bg-white/10']">
+                  <span class="flex items-center gap-1.5 whitespace-nowrap"><svg class="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><span class="whitespace-nowrap">{{ t('themeMidnight') }}</span></span>
+                  <span v-if="currentTheme === 'midnight'"><svg class="w-3.5 h-3.5 text-current flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+                </button>
+              </div>
+            </transition>
+          </div>
+
+          <!-- Language Picker -->
+          <div class="relative flex-1 min-w-[155px] sm:min-w-[160px]">
+            <button 
+              @click.stop="toggleDropdown('lang')" 
+              class="w-full flex items-center justify-between gap-2 bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 border border-black/10 dark:border-white/15 rounded-xl px-3 py-2 text-xs font-black transition active:scale-95 shadow-xs">
+              <span class="opacity-70 font-bold whitespace-nowrap">{{ t('langLabel') }}</span>
+              <span class="leading-normal whitespace-nowrap font-extrabold text-blue-600 dark:text-blue-300" :class="currentLang === 'km' ? 'font-khmer' : 'font-latin'">{{ currentLang === 'en' ? 'English' : 'ខ្មែរ' }}</span>
+              <svg class="w-3.5 h-3.5 flex-shrink-0 opacity-70 transition-transform duration-200" :class="{ 'rotate-180': activeDropdown === 'lang' }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+
+            <transition name="fade">
+              <div v-if="activeDropdown === 'lang'" class="absolute bottom-full mb-2 left-0 right-0 z-50 glass-card rounded-2xl p-1.5 shadow-2xl flex flex-col gap-1 backdrop-blur-xl animate-fade-in min-w-[150px] border border-black/10 dark:border-white/20">
+                <button 
+                  @click.stop="currentLang = 'en'; saveSettings(); activeDropdown = null" 
+                  :class="['w-full px-3 py-1.5 rounded-xl text-xs font-bold text-left flex items-center justify-between transition', currentLang === 'en' ? 'btn-accent text-white font-black' : 'hover:bg-black/5 dark:hover:bg-white/10']">
+                  <span class="flex items-center gap-1.5 whitespace-nowrap"><svg class="w-3.5 h-3.5 text-blue-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span class="whitespace-nowrap font-latin">English</span></span>
+                  <span v-if="currentLang === 'en'"><svg class="w-3.5 h-3.5 text-current flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+                </button>
+                <button 
+                  @click.stop="currentLang = 'km'; saveSettings(); activeDropdown = null" 
+                  :class="['w-full px-3 py-1.5 rounded-xl text-xs font-bold text-left flex items-center justify-between transition', currentLang === 'km' ? 'btn-accent text-white font-black' : 'hover:bg-black/5 dark:hover:bg-white/10']">
+                  <span class="flex items-center gap-1.5 whitespace-nowrap"><svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg><span class="leading-normal whitespace-nowrap font-khmer">ខ្មែរ</span></span>
+                  <span v-if="currentLang === 'km'"><svg class="w-3.5 h-3.5 text-current flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+                </button>
+              </div>
+            </transition>
+          </div>
+
+          <!-- Sound Toggle -->
+          <button @click="toggleSound" class="flex-1 min-w-[155px] sm:min-w-[160px] flex items-center justify-between gap-2 bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 border border-black/10 dark:border-white/15 rounded-xl px-3 py-2 text-xs font-black transition transform active:scale-95 shadow-xs" :title="soundEnabled ? 'Mute Sound' : 'Enable Sound'">
+            <span class="flex items-center gap-1.5">
+              <svg v-if="soundEnabled" class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+              <svg v-else class="w-4 h-4 text-rose-500 opacity-70 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+              <span class="font-bold opacity-70 whitespace-nowrap">Audio</span>
+            </span>
+            <span :class="['font-black text-xs whitespace-nowrap', soundEnabled ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-500']">{{ soundEnabled ? t('soundOn') : t('soundMuted') }}</span>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- Main Game Board Container -->
+      <div 
+        ref="gameBoard"
+        class="relative w-full aspect-square board-container p-2.5 sm:p-3 overflow-hidden" 
+        @touchstart="handleTouchStart"
+        @touchend="handleTouchEnd">
+        
+        <!-- Layer 1: Background Grid Cells -->
+        <div 
+          class="grid-board-layer"
+          :style="{ gridTemplateColumns: `repeat(${boardSize}, 1fr)`, gridTemplateRows: `repeat(${boardSize}, 1fr)`, gap: `${szGap}px` }">
+          <div 
+            v-for="i in (boardSize * boardSize)" 
+            :key="'bg-' + i" 
+            class="rounded-xl w-full h-full border grid-cell-bg"
+            :style="{ backgroundColor: 'var(--cell-bg)', borderColor: 'var(--cell-border)' }">
+          </div>
+        </div>
+
+        <!-- Layer 2: Live Dynamic Tiles Overlay Layer -->
+        <div class="absolute inset-2.5 sm:inset-3 pointer-events-none">
+          <div 
+            v-for="tile in activeTiles" 
+            :key="tile.id" 
+            :class="['absolute flex items-center justify-center font-black rounded-xl transition-all duration-100 ease-in-out tile-3d', getTileClass(tile.value), tile.isNew ? 'tile-appear' : '', tile.isMerged ? 'tile-merge' : '']"
+            :style="getTileStyle(tile)">
+            <span>{{ formatNum(tile.value) }}</span>
+          </div>
+        </div>
+
+        <!-- Victory / Game Over Modal Overlay -->
+        <transition name="fade">
+          <div v-if="gameState !== 'playing'" class="fixed inset-0 bg-black/85 backdrop-blur-xl z-50 flex flex-col items-center justify-center text-center p-6 text-white animate-fade-in shadow-2xl">
+            <div class="bg-slate-900/95 border-2 border-amber-500/50 text-white flex flex-col items-center text-center p-6 sm:p-8 max-w-sm w-full rounded-3xl shadow-[0_0_50px_rgba(245,158,11,0.3)] ring-1 ring-white/10 relative overflow-hidden">
+              
+              <!-- Ambient Glow -->
+              <div class="absolute -top-10 -left-10 w-36 h-36 bg-amber-500/20 rounded-full blur-2xl pointer-events-none"></div>
+              <div class="absolute -bottom-10 -right-10 w-36 h-36 bg-purple-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+              <!-- Winning Congrats Animation GIF -->
+              <div v-if="gameState === 'won'" class="w-full max-w-[260px] aspect-[4/3] mb-4 rounded-2xl overflow-hidden shadow-2xl border border-amber-400/40 relative p-1 bg-gradient-to-r from-amber-500/40 via-rose-500/40 to-purple-500/40">
+                <img 
+                  src="./images/congrats.gif" 
+                  alt="Congratulations Winner!" 
+                  class="w-full h-full object-cover scale-[1.25] transform rounded-xl shadow-inner"
+                  onerror="this.onerror=null; this.src='https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzN0M21xdjJieWNjbWs1dTlrdjRwazBybTQ4OTVhOWljcnBvNXY5dSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT0xezQGU5xCDJuCPe/giphy.gif';"
+                />
+              </div>
+
+              <!-- Game Over Animation GIF -->
+              <div v-else class="w-full max-w-[260px] aspect-[4/3] mb-4 rounded-2xl overflow-hidden shadow-2xl border border-rose-500/40 relative p-1 bg-gradient-to-r from-rose-500/40 via-purple-500/40 to-slate-900">
+                <img 
+                  src="./images/gameover.gif" 
+                  alt="Game Over!" 
+                  class="w-full h-full object-cover scale-[1.25] transform rounded-xl shadow-inner"
+                  onerror="this.onerror=null; this.src='https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzN0M21xdjJieWNjbWs1dTlrdjRwazBybTQ4OTVhOWljcnBvNXY5dSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT0xezQGU5xCDJuCPe/giphy.gif';"
+                />
+              </div>
+
+              <h2 class="text-3xl sm:text-4xl font-black mb-2 tracking-tight bg-gradient-to-r from-amber-400 via-rose-400 to-purple-400 text-transparent bg-clip-text uppercase">
+                {{ gameState === 'won' ? t('youWin') : t('gameOver') }}
+              </h2>
+              <p class="text-sm sm:text-base text-slate-300 mb-6 font-semibold max-w-xs leading-relaxed">
+                {{ gameState === 'won' ? t('winDesc') : t('overDesc') }}
+              </p>
+              <div class="mt-2 flex flex-col sm:flex-row gap-3 w-full relative z-10">
+                <!-- Option for Victory: Continue -->
+                <button 
+                  v-if="gameState === 'won'" 
+                  @click="keepGoing" 
+                  class="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-sm shadow-md flex items-center justify-center gap-1.5 transition active:scale-95 border border-white/10">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5 13 19"/><polygon points="2 19 11 12 2 5 2 19"/></svg>
+                  <span>{{ t('continueEndless') }}</span>
+                </button>
+                <!-- Option for Victory & Retry: Play Again -->
+                <button 
+                  @click="startNewGame" 
+                  class="btn-accent w-full py-3 px-4 rounded-xl font-extrabold text-white shadow-lg hover:shadow-xl transition transform active:scale-95 text-sm flex items-center justify-center gap-1.5">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                  <span>{{ t('playAgain') }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </transition>
+
+      </div>
+
+      <!-- Footer & Controls Helper -->
+      <footer class="text-center text-xs font-semibold opacity-75 flex flex-col gap-2 mt-1">
+        <p>{{ t('controlsHelp') }}</p>
+        <div class="flex justify-center gap-2 font-black items-center flex-wrap">
+          <kbd class="px-2 py-1 rounded-lg bg-black/10 dark:bg-white/10 border border-black/10 dark:border-white/20 text-xs font-black shadow-xs">↑ W</kbd>
+          <kbd class="px-2 py-1 rounded-lg bg-black/10 dark:bg-white/10 border border-black/10 dark:border-white/20 text-xs font-black shadow-xs">← A</kbd>
+          <kbd class="px-2 py-1 rounded-lg bg-black/10 dark:bg-white/10 border border-black/10 dark:border-white/20 text-xs font-black shadow-xs">↓ S</kbd>
+          <kbd class="px-2 py-1 rounded-lg bg-black/10 dark:bg-white/10 border border-black/10 dark:border-white/20 text-xs font-black shadow-xs">→ D</kbd>
+        </div>
+      </footer>
+
+    </div>
+
+  </div>
+
+  <script>
+    const { createApp, ref, computed, onMounted, onUnmounted, watch } = Vue;
+
+    createApp({
+      setup() {
+        const boardSize = ref(parseInt(localStorage.getItem('2048_boardSize') || '6', 10));
+        const spawnRate = ref(parseInt(localStorage.getItem('2048_spawnRate') || '1', 10));
+        const winTarget = ref(parseInt(localStorage.getItem('2048_winTarget') || '2048', 10));
+        
+        let savedTheme = localStorage.getItem('2048_theme');
+        if (!['warm', 'midnight'].includes(savedTheme)) savedTheme = 'warm';
+        const currentTheme = ref(savedTheme);
+
+        let savedLang = localStorage.getItem('2048_lang');
+        if (!['en', 'km'].includes(savedLang)) savedLang = 'en';
+        const currentLang = ref(savedLang);
+
+        const soundEnabled = ref(localStorage.getItem('2048_sound') !== 'false');
+
+        const translations = {
+          en: {
+            title: '16384',
+            subtitle: 'to win',
+            score: 'SCORE',
+            best: 'BEST',
+            moves: 'Moves:',
+            combo: 'Combo',
+            undo: 'Undo',
+            newGame: 'New Game',
+            gridLabel: 'Grid:',
+            spawnLabel: 'Spawn:',
+            targetLabel: 'Target:',
+            tile1: '1 Tile',
+            tile2: '2 Tiles',
+            themeLabel: 'Theme:',
+            themeWarm: 'Warm',
+            themeMidnight: 'Midnight',
+            soundOn: 'Sound On',
+            soundMuted: 'Muted',
+            combineHelp: 'Combine tiles to reach',
+            toWin: 'to win!',
+            youWin: 'YOU WIN!',
+            gameOver: 'GAME OVER!',
+            winDesc: 'Legendary strategy! You formed the {target} tile!',
+            overDesc: 'No available moves remaining on the board.',
+            continueEndless: 'Continue Endless',
+            playAgain: 'Play Again',
+            controlsHelp: 'Use Arrow Keys, WASD, or Swipe to slide tiles.',
+            langLabel: 'Lang:'
+          },
+          km: {
+            title: '16384',
+            subtitle: 'ដើម្បីឈ្នះ',
+            score: 'ពិន្ទុ',
+            best: 'ល្អបំផុត',
+            moves: 'ចំនួនផ្លាស់ទី:',
+            combo: 'បន្សំ',
+            undo: 'ត្រឡប់ក្រោយ',
+            newGame: 'ហ្គេមថ្មី',
+            gridLabel: 'ក្រឡា:',
+            spawnLabel: 'បង្កើត:',
+            targetLabel: 'គោលដៅ:',
+            tile1: '១ ក្រឡា',
+            tile2: '២ ក្រឡា',
+            themeLabel: 'ប្រធានបទ:',
+            themeWarm: 'ក្តៅសមរម្យ',
+            themeMidnight: 'អធ្រាត្រ',
+            soundOn: 'បើកសំឡេង',
+            soundMuted: 'បិទសំឡេង',
+            combineHelp: 'បូកបញ្ចូលក្រឡាដើម្បីឈ្នះ',
+            toWin: '!',
+            youWin: 'អ្នកបានឈ្នះ!',
+            gameOver: 'បញ្ចប់ហ្គេម!',
+            winDesc: 'យុទ្ធសាស្ត្រដ៏អស្ចារ្យ! អ្នកបង្កើតបានក្រឡា {target}!',
+            overDesc: 'គ្មានការផ្លាស់ទីដែលអាចធ្វើបានទៀតទេ។',
+            continueEndless: 'លេងបន្តទៀត',
+            playAgain: 'លេងម្តងទៀត',
+            controlsHelp: 'ប្រើប្រាស់គ្រាប់ចុចព្រួញ, WASD ឬរំកិលលើអេក្រង់ដើម្បីលេង។',
+            langLabel: 'ភាសា:'
+          }
+        };
+
+        const t = (key) => translations[currentLang.value]?.[key] || translations['en']?.[key] || key;
+
+        function formatNum(val) {
+          if (val === null || val === undefined) return '';
+          const str = String(val);
+          if (currentLang.value === 'km') {
+            const khmerDigits = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+            return str.replace(/\d/g, d => khmerDigits[parseInt(d, 10)]);
+          }
+          return str;
+        }
+
+        const grid = ref([]);
+        const score = ref(0);
+        const bestScore = ref(parseInt(localStorage.getItem(`2048_bestScore_${boardSize.value}`) || '0', 10));
+        const isNewBest = ref(false);
+        const moves = ref(0);
+        const comboMultiplier = ref(1);
+        const gameState = ref('playing'); // 'playing', 'won', 'over'
+        const continuePlaying = ref(false);
+
+        const history = ref([]);
+        const scoreGains = ref([]);
+        const tileIdCounter = ref(1);
+
+        const touchStartX = ref(0);
+        const touchStartY = ref(0);
+        const gameBoard = ref(null);
+
+        function playSound(type) {
+          if (!soundEnabled.value) return;
+          try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            const now = ctx.currentTime;
+            if (type === 'slide') {
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(160, now);
+              osc.frequency.exponentialRampToValueAtTime(280, now + 0.08);
+              gain.gain.setValueAtTime(0.08, now);
+              gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+              osc.start(now);
+              osc.stop(now + 0.08);
+            } else if (type === 'merge') {
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(320, now);
+              osc.frequency.exponentialRampToValueAtTime(640, now + 0.12);
+              gain.gain.setValueAtTime(0.2, now);
+              gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+              osc.start(now);
+              osc.stop(now + 0.12);
+            } else if (type === 'combo') {
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(520, now);
+              osc.frequency.exponentialRampToValueAtTime(1040, now + 0.18);
+              gain.gain.setValueAtTime(0.25, now);
+              gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
+              osc.start(now);
+              osc.stop(now + 0.18);
+            } else if (type === 'win') {
+              fireConfetti();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(440, now);
+              osc.frequency.setValueAtTime(554.37, now + 0.1);
+              osc.frequency.setValueAtTime(659.25, now + 0.2);
+              gain.gain.setValueAtTime(0.3, now);
+              gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+              osc.start(now);
+              osc.stop(now + 0.4);
+            } else if (type === 'over') {
+              osc.type = 'sawtooth';
+              osc.frequency.setValueAtTime(300, now);
+              osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+              gain.gain.setValueAtTime(0.2, now);
+              gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+              osc.start(now);
+              osc.stop(now + 0.3);
+            } else if (type === 'undo') {
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(400, now);
+              osc.frequency.exponentialRampToValueAtTime(200, now + 0.1);
+              gain.gain.setValueAtTime(0.15, now);
+              gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+              osc.start(now);
+              osc.stop(now + 0.1);
+            }
+          } catch (e) {
+            console.error('Audio play error', e);
+          }
+        }
+
+        function fireConfetti() {
+          if (window.confetti) {
+            window.confetti({
+              particleCount: 110,
+              spread: 90,
+              origin: { y: 0.6 }
+            });
+          }
+        }
+
+        const activeTiles = computed(() => {
+          const list = [];
+          for (let r = 0; r < boardSize.value; r++) {
+            for (let c = 0; c < boardSize.value; c++) {
+              const tile = grid.value[r]?.[c];
+              if (tile && tile.value > 0) {
+                list.push({
+                  ...tile,
+                  r,
+                  c
+                });
+              }
+            }
+          }
+          return list;
+        });
+
+        const canUndo = computed(() => history.value.length > 0);
+
+        function createEmptyGrid(size) {
+          const arr = [];
+          for (let r = 0; r < size; r++) {
+            const row = [];
+            for (let c = 0; c < size; c++) {
+              row.push(null);
+            }
+            arr.push(row);
+          }
+          return arr;
+        }
+
+        function getEmptyCells() {
+          const empty = [];
+          for (let r = 0; r < boardSize.value; r++) {
+            for (let c = 0; c < boardSize.value; c++) {
+              if (!grid.value[r][c]) {
+                empty.push({ r, c });
+              }
+            }
+          }
+          return empty;
+        }
+
+        function spawnRandomTile() {
+          const empty = getEmptyCells();
+          if (empty.length === 0) return null;
+          const idx = Math.floor(Math.random() * empty.length);
+          const { r, c } = empty[idx];
+          const val = Math.random() < 0.9 ? 2 : 4;
+          const newTile = {
+            id: tileIdCounter.value++,
+            value: val,
+            isNew: true,
+            isMerged: false
+          };
+          grid.value[r][c] = newTile;
+          return newTile;
+        }
+
+        function saveHistoryState() {
+          const serializedGrid = grid.value.map(row => 
+            row.map(cell => cell ? { ...cell, isNew: false, isMerged: false } : null)
+          );
+          history.value.push({
+            grid: serializedGrid,
+            score: score.value,
+            moves: moves.value,
+            gameState: gameState.value
+          });
+          if (history.value.length > 10) history.value.shift();
+        }
+
+        function undo() {
+          if (!canUndo.value) return;
+          const previous = history.value.pop();
+          grid.value = previous.grid;
+          score.value = previous.score;
+          moves.value = previous.moves;
+          gameState.value = previous.gameState;
+          playSound('undo');
+          saveGameState();
+        }
+
+        function addScoreGain(val) {
+          const gainObj = { id: Date.now() + Math.random(), value: val };
+          scoreGains.value.push(gainObj);
+          setTimeout(() => {
+            scoreGains.value = scoreGains.value.filter(g => g.id !== gainObj.id);
+          }, 750);
+        }
+
+        function slideLine(line) {
+          const nonNull = line.filter(item => item !== null);
+          const result = [];
+          let scoreGained = 0;
+          let mergesCount = 0;
+          let i = 0;
+
+          while (i < nonNull.length) {
+            if (i + 1 < nonNull.length && nonNull[i].value === nonNull[i + 1].value) {
+              const combinedValue = nonNull[i].value * 2;
+              result.push({
+                id: tileIdCounter.value++,
+                value: combinedValue,
+                isNew: false,
+                isMerged: true
+              });
+              scoreGained += combinedValue;
+              mergesCount++;
+              i += 2;
+            } else {
+              result.push({
+                ...nonNull[i],
+                isNew: false,
+                isMerged: false
+              });
+              i++;
+            }
+          }
+
+          while (result.length < line.length) {
+            result.push(null);
+          }
+
+          return { line: result, scoreGained, mergesCount };
+        }
+
+        function move(direction) {
+          if (gameState.value === 'over') return;
+
+          let moved = false;
+          let turnScoreGain = 0;
+          let turnMerges = 0;
+          const sz = boardSize.value;
+
+          saveHistoryState();
+
+          const nextGrid = createEmptyGrid(sz);
+
+          if (direction === 'left') {
+            for (let r = 0; r < sz; r++) {
+              const { line, scoreGained, mergesCount } = slideLine(grid.value[r]);
+              for (let c = 0; c < sz; c++) {
+                if (grid.value[r][c]?.value !== line[c]?.value) moved = true;
+                nextGrid[r][c] = line[c];
+              }
+              turnScoreGain += scoreGained;
+              turnMerges += mergesCount;
+            }
+          } else if (direction === 'right') {
+            for (let r = 0; r < sz; r++) {
+              const rev = [...grid.value[r]].reverse();
+              const { line, scoreGained, mergesCount } = slideLine(rev);
+              const actual = line.reverse();
+              for (let c = 0; c < sz; c++) {
+                if (grid.value[r][c]?.value !== actual[c]?.value) moved = true;
+                nextGrid[r][c] = actual[c];
+              }
+              turnScoreGain += scoreGained;
+              turnMerges += mergesCount;
+            }
+          } else if (direction === 'up') {
+            for (let c = 0; c < sz; c++) {
+              const col = [];
+              for (let r = 0; r < sz; r++) col.push(grid.value[r][c]);
+              const { line, scoreGained, mergesCount } = slideLine(col);
+              for (let r = 0; r < sz; r++) {
+                if (grid.value[r][c]?.value !== line[r]?.value) moved = true;
+                nextGrid[r][c] = line[r];
+              }
+              turnScoreGain += scoreGained;
+              turnMerges += mergesCount;
+            }
+          } else if (direction === 'down') {
+            for (let c = 0; c < sz; c++) {
+              const col = [];
+              for (let r = 0; r < sz; r++) col.push(grid.value[r][c]);
+              col.reverse();
+              const { line, scoreGained, mergesCount } = slideLine(col);
+              line.reverse();
+              for (let r = 0; r < sz; r++) {
+                if (grid.value[r][c]?.value !== line[r]?.value) moved = true;
+                nextGrid[r][c] = line[r];
+              }
+              turnScoreGain += scoreGained;
+              turnMerges += mergesCount;
+            }
+          }
+
+          if (!moved) {
+            history.value.pop();
+            return;
+          }
+
+          grid.value = nextGrid;
+          moves.value++;
+
+          if (turnMerges > 1) {
+            comboMultiplier.value = turnMerges;
+            playSound('combo');
+          } else if (turnMerges === 1) {
+            comboMultiplier.value = 1;
+            playSound('merge');
+          } else {
+            comboMultiplier.value = 1;
+            playSound('slide');
+          }
+
+          if (turnScoreGain > 0) {
+            score.value += turnScoreGain;
+            addScoreGain(turnScoreGain);
+            if (score.value > bestScore.value) {
+              bestScore.value = score.value;
+              localStorage.setItem(`2048_bestScore_${sz}`, bestScore.value);
+              isNewBest.value = true;
+              setTimeout(() => { isNewBest.value = false; }, 600);
+            }
+          }
+
+          for (let i = 0; i < spawnRate.value; i++) {
+            spawnRandomTile();
+          }
+
+          saveGameState();
+
+          if (!continuePlaying.value && gameState.value !== 'won' && checkWin()) {
+            gameState.value = 'won';
+            playSound('win');
+            return;
+          }
+
+          if (checkGameOver()) {
+            gameState.value = 'over';
+            playSound('over');
+          }
+        }
+
+        function checkWin() {
+          for (let r = 0; r < boardSize.value; r++) {
+            for (let c = 0; c < boardSize.value; c++) {
+              if (grid.value[r][c]?.value >= winTarget.value) return true;
+            }
+          }
+          return false;
+        }
+
+        function checkGameOver() {
+          if (getEmptyCells().length > 0) return false;
+          const sz = boardSize.value;
+          for (let r = 0; r < sz; r++) {
+            for (let c = 0; c < sz; c++) {
+              const val = grid.value[r][c]?.value;
+              if (c < sz - 1 && grid.value[r][c + 1]?.value === val) return false;
+              if (r < sz - 1 && grid.value[r + 1][c]?.value === val) return false;
+            }
+          }
+          return true;
+        }
+
+        function startNewGame() {
+          grid.value = createEmptyGrid(boardSize.value);
+          score.value = 0;
+          moves.value = 0;
+          comboMultiplier.value = 1;
+          gameState.value = 'playing';
+          continuePlaying.value = false;
+          history.value = [];
+
+          spawnRandomTile();
+          spawnRandomTile();
+          saveGameState();
+        }
+
+        function keepGoing() {
+          continuePlaying.value = true;
+          gameState.value = 'playing';
+        }
+
+        function changeBoardSize(size) {
+          if (boardSize.value === size) return;
+          boardSize.value = size;
+          bestScore.value = parseInt(localStorage.getItem(`2048_bestScore_${size}`) || '0', 10);
+          saveSettings();
+          startNewGame();
+        }
+
+        function toggleSound() {
+          soundEnabled.value = !soundEnabled.value;
+          saveSettings();
+        }
+
+        function saveSettings() {
+          localStorage.setItem('2048_boardSize', boardSize.value);
+          localStorage.setItem('2048_spawnRate', spawnRate.value);
+          localStorage.setItem('2048_theme', currentTheme.value);
+          localStorage.setItem('2048_sound', soundEnabled.value);
+          localStorage.setItem('2048_lang', currentLang.value);
+          localStorage.setItem('2048_winTarget', winTarget.value);
+        }
+
+        function saveGameState() {
+          const state = {
+            grid: grid.value,
+            score: score.value,
+            moves: moves.value,
+            gameState: gameState.value,
+            boardSize: boardSize.value
+          };
+          localStorage.setItem(`2048_state_${boardSize.value}`, JSON.stringify(state));
+        }
+
+        function loadGameState() {
+          const saved = localStorage.getItem(`2048_state_${boardSize.value}`);
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              if (parsed.grid && parsed.grid.length === boardSize.value) {
+                grid.value = parsed.grid;
+                score.value = parsed.score || 0;
+                moves.value = parsed.moves || 0;
+                gameState.value = parsed.gameState || 'playing';
+                return true;
+              }
+            } catch (e) {
+              console.error('Failed loading saved state', e);
+            }
+          }
+          return false;
+        }
+
+        const szGap = computed(() => boardSize.value >= 7 ? 6 : 10);
+
+        function getTileFontSize(value, sz) {
+          const digits = value.toString().length;
+          let scale = 1;
+          if (sz === 4) scale = 1.85;
+          else if (sz === 5) scale = 1.55;
+          else if (sz === 6) scale = 1.30;
+          else if (sz === 7) scale = 1.08;
+          else if (sz === 8) scale = 0.92;
+
+          let fontPx = 32 * scale;
+          if (digits === 3) fontPx *= 0.92;
+          else if (digits === 4) fontPx *= 0.80;
+          else if (digits === 5) fontPx *= 0.68;
+          else if (digits >= 6) fontPx *= 0.58;
+
+          return `${Math.max(fontPx, 12).toFixed(1)}px`;
+        }
+
+        function getTileStyle(tile) {
+          const sz = boardSize.value;
+          const gap = szGap.value;
+
+          return {
+            width: `calc((100% - ${(sz - 1) * gap}px) / ${sz})`,
+            height: `calc((100% - ${(sz - 1) * gap}px) / ${sz})`,
+            left: `calc(${tile.c} * (100% + ${gap}px) / ${sz})`,
+            top: `calc(${tile.r} * (100% + ${gap}px) / ${sz})`,
+            fontSize: getTileFontSize(tile.value, sz)
+          };
+        }
+
+        function getTileClass(value) {
+          if (currentTheme.value === 'midnight') {
+            if (value === 2) return 'bg-[#3f3f46] text-amber-300 font-black border border-amber-400/40 shadow-sm';
+            if (value === 4) return 'bg-[#52525b] text-amber-200 font-black border border-amber-300/50 shadow-sm';
+            if (value === 8) return 'bg-rose-900 text-rose-100 font-black border border-rose-400/50 shadow-sm';
+            if (value === 16) return 'bg-rose-700 text-white font-black shadow-sm';
+            if (value === 32) return 'bg-rose-600 text-white font-black shadow-sm';
+            if (value === 64) return 'bg-rose-500 text-white font-black shadow-sm';
+            if (value === 128) return 'bg-red-500 text-white font-black shadow-md';
+            if (value === 256) return 'bg-amber-600 text-white font-black shadow-md';
+            if (value === 512) return 'bg-yellow-500 text-black font-black shadow-lg';
+            if (value === 1024) return 'bg-orange-500 text-white font-black shadow-lg';
+            if (value === 2048) return 'bg-purple-600 text-white font-black shadow-xl';
+            if (value === 4096) return 'bg-gradient-to-br from-rose-600 to-pink-700 text-white font-black shadow-xl';
+            if (value === 8192) return 'bg-gradient-to-br from-violet-600 to-purple-800 text-white font-black shadow-xl';
+            if (value === 16384) return 'bg-emerald-600 text-white font-black shadow-2xl';
+            if (value >= 32768) return 'bg-amber-400 text-black font-black shadow-2xl';
+          }
+
+          // Warm Classic Default Palette
+          if (value === 2) return 'bg-[#eee4da] text-[#776e65]';
+          if (value === 4) return 'bg-[#ede0c8] text-[#776e65]';
+          if (value === 8) return 'bg-[#f2b179] text-white shadow-sm';
+          if (value === 16) return 'bg-[#f59563] text-white shadow-sm';
+          if (value === 32) return 'bg-[#f67c5f] text-white shadow-sm';
+          if (value === 64) return 'bg-[#f65e3b] text-white shadow-sm';
+          if (value === 128) return 'bg-[#edcf72] text-white shadow-md';
+          if (value === 256) return 'bg-[#edcc61] text-white shadow-md';
+          if (value === 512) return 'bg-[#edc850] text-white shadow-lg';
+          if (value === 1024) return 'bg-[#edc53f] text-white shadow-lg';
+          if (value === 2048) return 'bg-[#edc22e] text-white shadow-xl';
+          if (value === 4096) return 'bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-xl';
+          if (value === 8192) return 'bg-gradient-to-br from-violet-600 to-purple-800 text-white shadow-xl';
+          if (value === 16384) return 'bg-gradient-to-br from-purple-700 to-indigo-900 text-white shadow-2xl';
+          if (value === 32768) return 'bg-gradient-to-br from-blue-700 to-cyan-900 text-white shadow-2xl';
+          if (value >= 65536) return 'bg-gradient-to-br from-teal-700 to-emerald-900 text-white shadow-2xl';
+          return 'bg-[#3c3a32] text-white';
+        }
+
+        function handleKeyDown(e) {
+          if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) {
+            e.preventDefault();
+          }
+          switch (e.code) {
+            case 'ArrowUp': case 'KeyW': move('up'); break;
+            case 'ArrowDown': case 'KeyS': move('down'); break;
+            case 'ArrowLeft': case 'KeyA': move('left'); break;
+            case 'ArrowRight': case 'KeyD': move('right'); break;
+            case 'KeyU': undo(); break;
+            case 'KeyR': startNewGame(); break;
+          }
+        }
+
+        function handleTouchStart(e) {
+          if (e.touches.length > 1) return;
+          touchStartX.value = e.touches[0].clientX;
+          touchStartY.value = e.touches[0].clientY;
+        }
+
+        function handleTouchEnd(e) {
+          if (!touchStartX.value || !touchStartY.value) return;
+          const touchEndX = e.changedTouches[0].clientX;
+          const touchEndY = e.changedTouches[0].clientY;
+          const dx = touchEndX - touchStartX.value;
+          const dy = touchEndY - touchStartY.value;
+
+          const absDx = Math.abs(dx);
+          const absDy = Math.abs(dy);
+
+          if (Math.max(absDx, absDy) > 24) {
+            if (absDx > absDy) {
+              if (dx > 0) move('right');
+              else move('left');
+            } else {
+              if (dy > 0) move('down');
+              else move('up');
+            }
+          }
+
+          touchStartX.value = 0;
+          touchStartY.value = 0;
+        }
+
+        const activeDropdown = ref(null);
+
+        function toggleDropdown(name) {
+          activeDropdown.value = activeDropdown.value === name ? null : name;
+        }
+
+        function closeDropdowns() {
+          activeDropdown.value = null;
+        }
+
+        watch([currentTheme, currentLang], ([newTheme, newLang]) => {
+          document.body.className = `theme-${newTheme} lang-${newLang}`;
+          document.documentElement.className = `theme-${newTheme} lang-${newLang}`;
+        }, { immediate: true });
+
+        onMounted(() => {
+          window.addEventListener('keydown', handleKeyDown);
+          window.addEventListener('click', closeDropdowns);
+          if (!loadGameState()) {
+            startNewGame();
+          }
+        });
+
+        onUnmounted(() => {
+          window.removeEventListener('keydown', handleKeyDown);
+          window.removeEventListener('click', closeDropdowns);
+        });
+
+        return {
+          boardSize,
+          szGap,
+          spawnRate,
+          winTarget,
+          currentTheme,
+          currentLang,
+          t,
+          formatNum,
+          soundEnabled,
+          activeDropdown,
+          toggleDropdown,
+          score,
+          bestScore,
+          isNewBest,
+          moves,
+          comboMultiplier,
+          gameState,
+          activeTiles,
+          canUndo,
+          scoreGains,
+          gameBoard,
+          startNewGame,
+          undo,
+          keepGoing,
+          changeBoardSize,
+          toggleSound,
+          saveSettings,
+          getTileStyle,
+          getTileClass,
+          handleTouchStart,
+          handleTouchEnd
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
